@@ -9,7 +9,7 @@ declare -r -x RPC_HOST=http://localhost
 declare -r -x RPC_PORT=6800
 declare -r -x DL_DIR=~/Downloads/jackett
 declare -r -x FILE=/tmp/jackett_cli.$$.json
-declare -r FZF_DEFAULT_OPTS="--exact --no-separator --cycle --no-hscroll --no-scrollbar --color=dark --no-border --no-sort --tac --listen 1337"
+declare -r FZF_DEFAULT_OPTS="--multi --exact --no-separator --cycle --no-hscroll --no-scrollbar --color=dark --no-border --no-sort --tac --listen 1337"
 declare -x filter=all
 
 trap 'rm $FILE 2>/dev/null || true' EXIT

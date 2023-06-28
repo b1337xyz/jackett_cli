@@ -3,11 +3,11 @@
 Search torrents using Jackett's indexers and download using aria2 rpc.
 
 ### Requirements
-    - jackett (Default `http://localhost:9117`)
-    - bash 5.x.x
-    - fzf >= 0.36.0
-    - jq
-    - aria2c (RPC running by default on `http://localhost:6800`)
+- jackett (Default `http://localhost:9117`)
+- bash 5.x.x
+- fzf >= 0.36.0
+- jq
+- aria2c (RPC running by default on `http://localhost:6800`)
 
 ### Settings
 
