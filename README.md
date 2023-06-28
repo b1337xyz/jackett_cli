@@ -21,18 +21,6 @@ declare -r -x DL_DIR=~/Downloads/jackett
 declare -x filter=all
 ```
 
-### Key bindings
-```
-enter       : Search
-ctrl-l      : Go to last item
-ctrl-f      : Go to first item last
-ctrl-s      : Sort by Seeders
-ctrl-g      : Sort by Grabs
-ctrl-p      : Sort by Peers
-alt-s       : Sort by Size
-ctrl-d      : Download selected items
-```
-
 ---
 
 ```
@@ -52,4 +40,17 @@ Usage: jackett_cli.sh [option] <query>
 -i --indexer INDEXER    Indexer used for your search (Default: all)
 
 More about filters: https://github.com/Jackett/Jackett#filter-indexers
+```
+
+
+### Key bindings
+```
+enter       : Search
+ctrl-l      : Go to last item
+ctrl-f      : Go to first item last
+ctrl-s      : Sort by Seeders
+ctrl-g      : Sort by Grabs
+ctrl-p      : Sort by Peers
+alt-s       : Sort by Size
+ctrl-d      : Download selected items
 ```
