@@ -124,5 +124,5 @@ main "${query:1}" | fzf --prompt 'Search: ' \
     --bind 'ctrl-l:last' \
     --bind 'ctrl-f:first' \
     --bind 'enter:reload(main {} {q})+clear-query' \
-    --bind 'tab:reload(main menu)+clear-query' \
+    --bind 'esc:reload(main menu)+clear-query' \
     --bind 'ctrl-d:execute(main download {+})'

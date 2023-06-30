@@ -43,7 +43,7 @@ More about filters: https://github.com/Jackett/Jackett#filter-indexers
 ### Key bindings
 ```
 enter  : Search
-tab    : Menu
+esc    : Menu
 ctrl-l : Move to the last match
 ctrl-f : Move to the first match
 ctrl-d : Download selected items
