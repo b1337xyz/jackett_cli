@@ -12,14 +12,14 @@ declare -r -x FILE=/tmp/jackett_cli.$$.json
 declare -r FZF_DEFAULT_OPTS="--multi --exact --no-separator --cycle --no-hscroll --no-scrollbar --color=dark --no-border --no-sort --tac --listen 1337"
 declare -x filter=all
 
-trap 'rm $FILE ${FILE}.curr ${FILE}.prev 2>/dev/null || true' EXIT
+trap 'rm $FILE ${FILE}.curr 2>/dev/null || true' EXIT
 
 help() {
     cat << EOF
 Usage: ${0##*/} [option] <query>
 
 -h --help               Show this message and exit
-
+-i --indexer INDEXER    Indexer used for your search (Default: all)
 -f --filter  FILTER     Supported filters
                             type:<type>
                             tag:<tag>
@@ -30,8 +30,6 @@ Usage: ${0##*/} [option] <query>
                             !<expr>
                             <expr1>+<expr2>[+<expr3>...]
                             <expr1>,<expr2>[,<expr3>...]
-
--i --indexer INDEXER    Indexer used for your search (Default: all)
 
 More about filters: https://github.com/Jackett/Jackett#filter-indexers
 
@@ -52,14 +50,16 @@ done
 fzf_cmd() { curl -s -XPOST localhost:1337 -d "$1" >/dev/null 2>&1 || true; }
 
 main() {
-    prev=${FILE}.prev
+    # TODO
+    #   - Handle <filters>
+    
     curr=${FILE}.curr
     case "$1" in
         download)
             shift
             for i in "$@";do
                 link=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].Link' "$FILE")
-                data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir":"%s"}]}' "$link" "$DL_DIR")
+                data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir":"%s", "bt-save-metadata":true}]}' "$link" "$DL_DIR")
                 curl -s "${RPC_HOST}:${RPC_PORT}/jsonrpc" \
                     -H "Content-Type: application/json" -H "Accept: application/json" \
                     -d "$data" >/dev/null 2>&1
@@ -70,18 +70,19 @@ main() {
             for i in Title Seeders Peers Grabs Size Tracker;do echo "$i:Sort by $i" ;done
             echo 'PublishDate:Sort by Date'
             echo 'CategoryDesc:Sort by Category'
-            echo 'CategoryDesc:Category'
-            echo 'TrackerType:Type'
+            echo 'submenu_CategoryDesc:Category'
+            echo 'submenu_Tracker:Tracker'
+            echo 'submenu_TrackerType:Type'
+            ;;
+        submenu_*)
+            k=${1/submenu_} k=${k%%:*}
+            jq -Mcr --arg k "$k" '.Results[][$k] | "\($k):\(.)"' "$FILE" | sort -u
             ;;
         [A-Z]*:Sort*) 
             k=${1%%:*}
             fzf_cmd "change-prompt((Sorting by ${k}) Search: )"
-            grep -xFf "$prev" < <(jq -Mcr --arg k "$k" \
-                '.Results as $r | $r | [to_entries[] | {k: .key, v: .value[$k]}] | sort_by(.v)[] | "\(.k):\($r[.k].Title)"' "$FILE") | tee "$curr"
-            ;;
-        [A-Z]*:Category|[A-Z]*:Type)
-            k=${1%%:*}
-            jq -Mcr --arg k "$k" '.Results[][$k] | "\($k):\(.)"' "$FILE" | sort -u
+            grep -xFf "$curr" < <(jq -Mcr --arg k "$k" \
+                '.Results as $r | $r | [to_entries[] | {k: .key, v: .value[$k]}] | sort_by(.v)[] | "\(.k):\($r[.k].Title)"' "$FILE")
             ;;
         [A-Z]*:*)
             k=${1%%:*} v=${1##*:}
@@ -90,13 +91,13 @@ main() {
             ;;
         *)
             query=${2:-$1}
+            [ -z "$query" ] && return
             fzf_cmd "change-prompt(Searching... )"
             curl -s "${API_URL}/${filter:-all}/results?apikey=${API_KEY}&Query=${query// /+}" -o "$FILE"
             jq -Mcr '.Results | to_entries[] | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
             fzf_cmd 'change-prompt(Search: )'
             ;;
     esac
-    cp "$curr" "$prev"
 }
 
 preview() {
@@ -128,5 +129,5 @@ main "${query:1}" | fzf --prompt 'Search: ' \
     --bind 'ctrl-l:last' \
     --bind 'ctrl-f:first' \
     --bind 'enter:reload(main {} {q})+clear-query' \
-    --bind 'tab:reload(main menu)' \
+    --bind 'tab:reload(main menu)+clear-query' \
     --bind 'ctrl-d:execute(main download {+})'
