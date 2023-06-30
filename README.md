@@ -7,7 +7,7 @@ Search torrents using Jackett's indexers and download using aria2 rpc.
 - bash 5.x.x
 - fzf >= 0.36.0
 - jq
-- aria2c (RPC running by default on `http://localhost:6800`)
+- aria2 (RPC running by default on `http://localhost:6800`)
 
 ### Settings
 
@@ -46,8 +46,8 @@ More about filters: https://github.com/Jackett/Jackett#filter-indexers
 ### Key bindings
 ```
 enter       : Search
-ctrl-l      : Go to last item
-ctrl-f      : Go to first item last
+ctrl-l      : Move to the last match
+ctrl-f      : Move to the first match
 ctrl-s      : Sort by Seeders
 ctrl-g      : Sort by Grabs
 ctrl-p      : Sort by Peers
