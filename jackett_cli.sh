@@ -62,7 +62,7 @@ main() {
             done
             ;;
         menu)
-            fzf_cmd "change-prompt(Sort by: )"
+            fzf_cmd "change-prompt(Menu: )"
             for i in Title Seeders Peers Grabs Size CategoryDesc Tracker PublishDate; do echo sort:$i ;done
             printf 'select:Category\n'
             ;;
@@ -71,6 +71,7 @@ main() {
             ;;
         cat:*)
             v=${1/cat:}
+            fzf_cmd "change-prompt(($v) Search: )"
             jq -Mcr --arg v "$v" '.Results | to_entries[] | select(.value.CategoryDesc == $v) | "\(.key):\(.value.Title)"' "$FILE"
             ;;
         sort:*) 
