@@ -12,7 +12,7 @@ declare -r -x FILE=/tmp/jackett_cli.$$.json
 declare -r FZF_DEFAULT_OPTS="--multi --exact --no-separator --cycle --no-hscroll --no-scrollbar --color=dark --no-border --no-sort --tac --listen 1337"
 declare -x filter=all
 
-trap 'rm $FILE 2>/dev/null || true' EXIT
+trap 'rm $FILE ${FILE}.mode 2>/dev/null || true' EXIT
 
 help() {
     cat << EOF
@@ -47,12 +47,9 @@ while (( $# )) ;do
     shift
 done
 
-change_prompt() {
-    curl -s -XPOST localhost:1337 -d "change-prompt($1 )" || true
-}
+fzf_cmd() { curl -s -XPOST localhost:1337 -d "$1" >/dev/null 2>&1 || true; }
 
 main() {
-    [ -z "$1" ] && return
     case "$1" in
         download)
             shift
@@ -61,24 +58,37 @@ main() {
                 data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir":"%s"}]}' "$link" "$DL_DIR")
                 curl -s "${RPC_HOST}:${RPC_PORT}/jsonrpc" \
                     -H "Content-Type: application/json" -H "Accept: application/json" \
-                    -d "$data" 
+                    -d "$data" >/dev/null 2>&1
             done
             ;;
-        sort_by) 
-            change_prompt "(Sorted by ${2}) Search:"
-            jq -Mcr --arg k "$2" '.Results as $r | $r | [to_entries[] | {k: .key, v: .value[$k]}] | sort_by(.v)[] | "\(.k):\($r[.k].Title)"' "$FILE"
+        menu)
+            fzf_cmd "change-prompt(Sort by: )"
+            for i in Title Seeders Peers Grabs Size CategoryDesc Tracker PublishDate; do echo sort:$i ;done
+            printf 'select:Category\n'
+            ;;
+        select:Category)
+            jq -Mcr '.Results[].CategoryDesc | "cat:\(.)"' "$FILE" | sort -u
+            ;;
+        cat:*)
+            v=${1/cat:}
+            jq -Mcr --arg v "$v" '.Results | to_entries[] | select(.value.CategoryDesc == $v) | "\(.key):\(.value.Title)"' "$FILE"
+            ;;
+        sort:*) 
+            k=${1/sort:/}
+            fzf_cmd "change-prompt((Sorting by ${k}) Search: )"
+            jq -Mcr --arg k "$k" '.Results as $r | $r | [to_entries[] | {k: .key, v: .value[$k]}] | sort_by(.v)[] | "\(.k):\($r[.k].Title)"' "$FILE"
             ;;
         *)
-            change_prompt 'Searching...'
-            curl -s "${API_URL}/${filter:-all}/results?apikey=${API_KEY}&Query=${1// /+}" -o "$FILE"
+            query=${2:-$1}
+            fzf_cmd "change-prompt(Searching... )"
+            curl -s "${API_URL}/${filter:-all}/results?apikey=${API_KEY}&Query=${query// /+}" -o "$FILE"
             jq -Mcr '.Results | to_entries[] | "\(.key):\(.value.Title)"' "$FILE"
-            change_prompt "Search:"
+            fzf_cmd 'change-prompt(Search: )'
             ;;
     esac
 }
 
 preview() {
-    # jq -C --argjson i "$1" '.Results[$i] | keys[]' "$FILE" | bat
     jq -Mcr --argjson i "$1" --argjson units '["B", "K", "M", "G", "T", "P"]' '
     def psize(size;i):
         if (size < 1000) then
@@ -95,30 +105,17 @@ Date: \(.PublishDate)
 Size: \(psize(.Size;0))
 Grabs: \(.Grabs)
 Seeders: \(.Seeders)
-Peers: \(.Peers)"' "$FILE"
+Peers: \(.Peers)"' "$FILE" 2>/dev/null
 
 }
 
-init() {
-    # TODO
-    if ! [ -d "$CACHE_DIR" ];then
-        printf 'Downloading Definitions...\n'
-        curl -s 'https://github.com/Jackett/Jackett/tree/487cacf96716317299fdf4b11287a96fa4918552/src/Jackett.Common/Definitions' |
-            grep -oP '(?<=href=")[^"]+\.yml' | sed 's/\/blob//; s/^/https:\/\/raw.githubusercontent.com/' |
-            aria2c -j 2 --summary-interval=0 --allow-overwrite=false --auto-file-renaming=false --dir="$CACHE_DIR" --input-file=- 
-    fi
-} # && init
-
-export -f preview main change_prompt
+export -f preview main fzf_cmd
 n=$'\n'
 main "${query:1}" | fzf --prompt 'Search: ' \
-    --header "Sort: C-s Seeders C-g Grabs C-p Peers A-s Size${n}Download: C-d" \
-    --delimiter ':' --nth 2.. --with-nth 2.. \
+    --delimiter ':' --with-nth 2.. \
     --preview 'preview {1}' \
-    --bind 'enter:reload(main {q})+clear-query' \
-    --bind 'ctrl-l:last' --bind 'ctrl-f:first' \
-    --bind 'ctrl-s:reload(main sort_by Seeders)' \
-    --bind 'ctrl-g:reload(main sort_by Grabs)' \
-    --bind 'ctrl-p:reload(main sort_by Peers)' \
-    --bind 'alt-s:reload(main sort_by Size)' \
-    --bind 'ctrl-d:execute(main download {1})'
+    --bind 'ctrl-l:last' \
+    --bind 'ctrl-f:first' \
+    --bind 'enter:reload(main {} {q})+clear-query' \
+    --bind 'tab:reload(main menu)' \
+    --bind 'ctrl-d:execute(main download {+})'
