@@ -3,16 +3,12 @@
 set -eo pipefail
 
 declare -r -x API_KEY=
-declare -r -x API_URL=http://localhost:9117/api/v2.0/indexers
-declare -r -x CACHE_DIR=~/.cache/jackett_cli
-declare -r -x RPC_HOST=http://localhost
-declare -r -x RPC_PORT=6800
+declare -r -x API_URL=http://localhost:9117
+declare -r -x RPC_URL=http://localhost:6800
 declare -r -x DL_DIR=~/Downloads/jackett
 declare -r -x FILE=/tmp/jackett_cli.$$.json
 declare -r FZF_DEFAULT_OPTS="--multi --exact --no-separator --cycle --no-hscroll --no-scrollbar --color=dark --no-border --no-sort --tac --listen 1337"
 declare -x filter=all
-
-trap 'rm $FILE ${FILE}.curr 2>/dev/null || true' EXIT
 
 help() {
     cat << EOF
@@ -60,9 +56,7 @@ main() {
             for i in "$@";do
                 link=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].Link' "$FILE")
                 data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir":"%s", "bt-save-metadata":true}]}' "$link" "$DL_DIR")
-                curl -s "${RPC_HOST}:${RPC_PORT}/jsonrpc" \
-                    -H "Content-Type: application/json" -H "Accept: application/json" \
-                    -d "$data" >/dev/null 2>&1
+                curl -s "${RPC_URL}/jsonrpc" -H "Content-Type: application/json" -H "Accept: application/json" -d "$data" >/dev/null 2>&1
             done
             ;;
         menu)
@@ -93,7 +87,7 @@ main() {
             query=${2:-$1}
             [ -z "$query" ] && return
             fzf_cmd "change-prompt(Searching... )"
-            curl -s "${API_URL}/${filter:-all}/results?apikey=${API_KEY}&Query=${query// /+}" -o "$FILE"
+            curl -s "${API_URL}/api/v2.0/indexers/${filter:-all}/results?apikey=${API_KEY}&Query=${query// /+}" -o "$FILE"
             jq -Mcr '.Results | to_entries[] | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
             fzf_cmd 'change-prompt(Search: )'
             ;;
@@ -122,6 +116,7 @@ Peers: \(.Peers)"' "$FILE" 2>/dev/null
 }
 
 export -f preview main fzf_cmd
+trap 'rm $FILE ${FILE}.curr 2>/dev/null || true' EXIT
 n=$'\n'
 main "${query:1}" | fzf --prompt 'Search: ' \
     --delimiter ':' --with-nth 2.. \

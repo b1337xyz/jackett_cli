@@ -13,19 +13,18 @@ Search torrents using Jackett's indexers and download using aria2 rpc.
 
 ```bash
 declare -r -x API_KEY=YOUR_API_KEY_HERE
-declare -r -x API_URL=http://localhost:9117/api/v2.0/indexers
-declare -r -x CACHE_DIR=~/.cache/jackett_cli
-declare -r -x RPC_HOST=http://localhost
-declare -r -x RPC_PORT=6800
+declare -r -x API_URL=http://localhost:9117
+declare -r -x RPC_URL=http://localhost:6800
 declare -r -x DL_DIR=~/Downloads/jackett
 declare -x filter=all
 ```
 
----
 
 ```
 Usage: jackett_cli.sh [option] <query>
 
+-h --help               Show this message and exit
+-i --indexer INDEXER    Indexer used for your search (Default: all)
 -f --filter  FILTER     Supported filters
                             type:<type>
                             tag:<tag>
@@ -37,17 +36,15 @@ Usage: jackett_cli.sh [option] <query>
                             <expr1>+<expr2>[+<expr3>...]
                             <expr1>,<expr2>[,<expr3>...]
 
--i --indexer INDEXER    Indexer used for your search (Default: all)
-
 More about filters: https://github.com/Jackett/Jackett#filter-indexers
 ```
 
 
 ### Key bindings
 ```
-enter       : Search
-tab         : Menu
-ctrl-l      : Move to the last match
-ctrl-f      : Move to the first match
-ctrl-d      : Download selected items
+enter  : Search
+tab    : Menu
+ctrl-l : Move to the last match
+ctrl-f : Move to the first match
+ctrl-d : Download selected items
 ```
