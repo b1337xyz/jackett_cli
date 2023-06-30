@@ -46,11 +46,8 @@ More about filters: https://github.com/Jackett/Jackett#filter-indexers
 ### Key bindings
 ```
 enter       : Search
+tab         : Menu
 ctrl-l      : Move to the last match
 ctrl-f      : Move to the first match
-ctrl-s      : Sort by Seeders
-ctrl-g      : Sort by Grabs
-ctrl-p      : Sort by Peers
-alt-s       : Sort by Size
 ctrl-d      : Download selected items
 ```
