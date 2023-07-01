@@ -9,7 +9,7 @@ Search torrents using Jackett's indexers and download using aria2 rpc.
 - jq
 - aria2 (RPC running by default on `http://localhost:6800`)
 
-### Settings
+### [Settings](https://github.com/b1337xyz/jackett_cli/blob/main/jackett_cli.sh#L5)
 
 ```bash
 declare -r -x API_KEY=YOUR_API_KEY_HERE
