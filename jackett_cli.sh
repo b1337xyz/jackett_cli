@@ -46,9 +46,6 @@ done
 fzf_cmd() { curl -s -XPOST localhost:1337 -d "$1" >/dev/null 2>&1 || true; }
 
 main() {
-    # TODO
-    #   - Handle <filters>
-    
     curr=${FILE}.curr
     case "$1" in
         download)
@@ -105,7 +102,6 @@ preview() {
 
     .Results[$i] | "Tracker: \(.Tracker)
 Type: \(.TrackerType)
-Title: \(.Title)
 Category: \(.CategoryDesc)
 Date: \(.PublishDate)
 Size: \(psize(.Size;0))
@@ -121,6 +117,7 @@ n=$'\n'
 main "${query:1}" | fzf --prompt 'Search: ' \
     --delimiter ':' --with-nth 2.. \
     --preview 'preview {1}' \
+    --preview-window 'right,30%' \
     --bind 'ctrl-l:last' \
     --bind 'ctrl-f:first' \
     --bind 'enter:reload(main {} {q})+clear-query' \
