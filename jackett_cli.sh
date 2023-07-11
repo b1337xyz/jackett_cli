@@ -53,9 +53,17 @@ main() {
             for i in "$@";do
                 link=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].Link' "$FILE")
                 blink=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].BlackholeLink' "$FILE")
-                data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s", "%s"], {"dir":"%s", "bt-save-metadata":true}]}' \
-                       "$link" "$blink" "$DL_DIR")
-                curl -s "${RPC_URL}/jsonrpc" -H "Content-Type: application/json" -H "Accept: application/json" -d "$data" >/dev/null 2>&1
+                data=$(printf '{
+                    "jsonrcp": "2.0",
+                    "id": "jackett",
+                    "method": "aria2.addUri",
+                    "params": [
+                        ["%s", "%s"],
+                        {"dir": "%s", "bt-save-metadata": true}
+                    ]
+                }' "$link" "$blink" "$DL_DIR" | jq -Mc .)
+                curl -s "${RPC_URL}/jsonrpc" -d "$data" \
+                    -H "Content-Type: application/json" -H "Accept: application/json" >/dev/null 2>&1
             done
             ;;
         menu)
@@ -86,7 +94,7 @@ main() {
             query=${2:-$1}
             [ -z "$query" ] && return
             fzf_cmd "change-prompt(Searching... )"
-            curl -s "${API_URL}/api/v2.0/indexers/${filter:-all}/results?apikey=${API_KEY}&Query=${query// /+}" -o "$FILE"
+            curl -s "${API_URL}/api/v2.0/indexers/${filter:-all}/results?apikey=${API_KEY}&Query=${query// /+}" -o "$FILE" >/dev/null 2>&1
             jq -Mcr '.Results | to_entries[] | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
             fzf_cmd 'change-prompt(Search: )'
             ;;
@@ -115,7 +123,6 @@ Peers: \(.Peers)"' "$FILE" 2>/dev/null
 
 export -f preview main fzf_cmd
 trap 'rm $FILE ${FILE}.curr 2>/dev/null || true' EXIT
-n=$'\n'
 main "${query:1}" | fzf --prompt 'Search: ' \
     --delimiter ':' --with-nth 2.. \
     --preview 'preview {1}' \
