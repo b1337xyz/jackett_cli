@@ -2,7 +2,7 @@
 # shellcheck disable=SC2034
 set -eo pipefail
 
-declare -r -x API_KEY=
+declare -r -x API_KEY=wyi9jb2r1g7q1ql7vnvi8cttgz3bafgy
 declare -r -x API_URL=http://localhost:9117
 declare -r -x RPC_URL=http://localhost:6800
 declare -r -x DL_DIR=~/Downloads/jackett
@@ -52,7 +52,9 @@ main() {
             shift
             for i in "$@";do
                 link=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].Link' "$FILE")
-                data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s"], {"dir":"%s", "bt-save-metadata":true}]}' "$link" "$DL_DIR")
+                blink=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].BlackholeLink' "$FILE")
+                data=$(printf '{"jsonrcp":"2.0", "id":"1", "method":"aria2.addUri", "params":[["%s", "%s"], {"dir":"%s", "bt-save-metadata":true}]}' \
+                       "$link" "$blink" "$DL_DIR")
                 curl -s "${RPC_URL}/jsonrpc" -H "Content-Type: application/json" -H "Accept: application/json" -d "$data" >/dev/null 2>&1
             done
             ;;
