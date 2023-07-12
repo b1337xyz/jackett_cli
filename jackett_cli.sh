@@ -61,7 +61,7 @@ main() {
                         ["%s", "%s"],
                         {"dir": "%s", "bt-save-metadata": true}
                     ]
-                }' "$link" "$blink" "$DL_DIR" | jq -Mc .)
+                }' "$link" "$blink" "$DL_DIR" | jq -Mc)
                 curl -s "${RPC_URL}/jsonrpc" -d "$data" \
                     -H "Content-Type: application/json" -H "Accept: application/json" >/dev/null 2>&1
             done
