@@ -2,7 +2,7 @@
 # shellcheck disable=SC2034
 set -eo pipefail
 
-declare -r -x API_KEY=wyi9jb2r1g7q1ql7vnvi8cttgz3bafgy
+declare -r -x API_KEY=
 declare -r -x API_URL=http://localhost:9117
 declare -r -x RPC_URL=http://localhost:6800
 declare -r -x DL_DIR=~/Downloads/jackett
