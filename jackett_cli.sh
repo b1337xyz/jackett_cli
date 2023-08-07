@@ -86,7 +86,7 @@ main() {
                 '.Results as $r | $r | [to_entries[] | {k: .key, v: .value[$k]}] | sort_by(.v)[] | "\(.k):\($r[.k].Title)"' "$FILE")
             ;;
         [A-Z]*:*)
-            k=${1%%:*} v=${1##*:}
+            k=${1%%:*} v=${1#*:}
             fzf_cmd "change-prompt(($v) Search: )"
             jq -Mcr --arg k "$k" --arg v "$v" '.Results | to_entries[] | select(.value[$k] == $v) | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
             ;;
