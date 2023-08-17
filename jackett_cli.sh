@@ -43,7 +43,8 @@ while (( $# )) ;do
     shift
 done
 
-fzf_cmd() { curl -s -XPOST localhost:1337 -d "$1" >/dev/null 2>&1 || true; }
+fzf_port=$((RANDOM % (63000 - 20000) + 20000))
+fzf_cmd() { curl -s -XPOST localhost:${fzf_port} -d "$1" >/dev/null 2>&1 || true; }
 
 main() {
     curr=${FILE}.curr
