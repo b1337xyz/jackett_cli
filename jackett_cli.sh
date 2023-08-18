@@ -7,7 +7,8 @@ declare -r -x API_URL=http://localhost:9117
 declare -r -x RPC_URL=http://localhost:6800
 declare -r -x DL_DIR=~/Downloads/jackett
 declare -r -x FILE=/tmp/jackett_cli.$$.json
-declare -r FZF_DEFAULT_OPTS="--multi --exact --no-separator --cycle --no-hscroll --no-scrollbar --color=dark --no-border --no-sort --tac --listen 1337"
+declare -r FZF_PORT=$((RANDOM % (63000 - 20000) + 20000))
+declare -r FZF_DEFAULT_OPTS="--multi --exact --no-separator --cycle --no-hscroll --no-scrollbar --color=dark --no-border --no-sort --tac --listen ${FZF_PORT}"
 declare -x filter=all
 
 help() {
@@ -43,28 +44,45 @@ while (( $# )) ;do
     shift
 done
 
-fzf_port=$((RANDOM % (63000 - 20000) + 20000))
-fzf_cmd() { curl -s -XPOST localhost:${fzf_port} -d "$1" >/dev/null 2>&1 || true; }
+fzf_cmd() { curl -s -XPOST "127.0.0.1:${FZF_PORT}" -d "$1" >/dev/null 2>&1 || true; }
+
+addUri() {
+    data=$(printf '{
+        "jsonrcp": "2.0",
+        "id": "jackett",
+        "method": "aria2.addUri",
+        "params": [ ["%s"], {"dir": "%s", "bt-save-metadata": true} ]
+    }' "$1" "$DL_DIR" | jq -Mc)
+    curl -s "${RPC_URL}/jsonrpc" -d "$data" \
+        -H "Content-Type: application/json" -H "Accept: application/json" >/dev/null 2>&1
+}
+export -f addUri
+
+tellStatus() {
+    data=$(printf '{
+        "jsonrcp": "2.0",
+        "id": "jackett",
+        "method": "aria2.tellStatus",
+        "params": ["%s"]
+    }' "$1" | jq -Mc)
+    curl -s "${RPC_URL}/jsonrpc" -d "$data" \
+        -H "Content-Type: application/json" -H "Accept: application/json" 2>&1
+
+}
+# export -f tellStatus
 
 main() {
     curr=${FILE}.curr
     case "$1" in
-        download)
+        download|blackhole)
             shift
             for i in "$@";do
-                link=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].Link' "$FILE")
-                blink=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].BlackholeLink' "$FILE")
-                data=$(printf '{
-                    "jsonrcp": "2.0",
-                    "id": "jackett",
-                    "method": "aria2.addUri",
-                    "params": [
-                        ["%s", "%s"],
-                        {"dir": "%s", "bt-save-metadata": true}
-                    ]
-                }' "$link" "$blink" "$DL_DIR" | jq -Mc)
-                curl -s "${RPC_URL}/jsonrpc" -d "$data" \
-                    -H "Content-Type: application/json" -H "Accept: application/json" >/dev/null 2>&1
+                if [ "$1" = download ];then
+                    link=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].Link' "$FILE")
+                else
+                    link=$(jq -Mcr --argjson i "${i%%:*}" '.Results[$i].BlackholeLink' "$FILE")
+                fi
+                addUri "$link"
             done
             ;;
         menu)
@@ -132,4 +150,5 @@ main "${query:1}" | fzf --prompt 'Search: ' \
     --bind 'ctrl-f:first' \
     --bind 'enter:reload(main {} {q})+clear-query' \
     --bind 'esc:reload(main menu)+clear-query' \
-    --bind 'ctrl-d:execute(main download {+})'
+    --bind 'ctrl-d:execute(main download {+})' \
+    --bind 'ctrl-b:execute(main blackhole {+})'
