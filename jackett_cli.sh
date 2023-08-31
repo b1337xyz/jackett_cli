@@ -5,7 +5,7 @@ set -eo pipefail
 declare -r -x API_KEY=YOUR_API_KEY_HERE
 declare -r -x API_URL=http://localhost:9117
 declare -r -x RPC_URL=http://localhost:6800
-declare -r -x DL_DIR=~/Downloads/jackett
+declare -r -x DL_DIR=/tmp/jackett
 declare -r -x FILE=/tmp/jackett_cli.$$.json
 declare -r FZF_PORT=$((RANDOM % (63000 - 20000) + 20000))
 declare -r FZF_DEFAULT_OPTS="--multi --exact --no-separator --cycle --no-hscroll --no-scrollbar --color=dark --no-border --no-sort --tac --listen ${FZF_PORT}"
