@@ -24,8 +24,8 @@ declare -x filter=all
 Usage: jackett_cli.sh [option] <query>
 
 -h --help               Show this message and exit
--i --indexer INDEXER    Indexer used for your search (Default: all)
--f --filter  FILTER     Supported filters
+-f --filter  FILTER     Indexer used for your search (Default: all)
+                        Supported filters
                             type:<type>
                             tag:<tag>
                             lang:<tag>
@@ -48,3 +48,6 @@ ctrl-l : Move to the last match
 ctrl-f : Move to the first match
 ctrl-d : Download selected items
 ```
+
+### TODO
+- [ ] Search modes and parameters

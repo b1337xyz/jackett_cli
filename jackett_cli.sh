@@ -16,8 +16,8 @@ help() {
 Usage: ${0##*/} [option] <query>
 
 -h --help               Show this message and exit
--i --indexer INDEXER    Indexer used for your search (Default: all)
--f --filter  FILTER     Supported filters
+-f --filter  FILTER     Indexer used for your search (Default: all)
+                        Supported filters
                             type:<type>
                             tag:<tag>
                             lang:<tag>
@@ -27,6 +27,7 @@ Usage: ${0##*/} [option] <query>
                             !<expr>
                             <expr1>+<expr2>[+<expr3>...]
                             <expr1>,<expr2>[,<expr3>...]
+                        
 
 More about filters: https://github.com/Jackett/Jackett#filter-indexers
 
@@ -37,7 +38,7 @@ EOF
 
 while (( $# )) ;do
     case "$1" in
-        -f|--filter|-i|--indexer) shift; filter="$1" ;;
+        -f|--filter) shift; filter="$1" ;;
         -h|--help) help ;;
         *) query="${query}+$1" ;;
     esac
