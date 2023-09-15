@@ -10,7 +10,6 @@ declare -r -x FILE=/tmp/jackett_cli.$$.json
 declare -r FZF_PORT=$((RANDOM % (63000 - 20000) + 20000))
 declare -r FZF_DEFAULT_OPTS="--multi --exact --no-separator --cycle --no-hscroll --no-scrollbar --color=dark --no-border --no-sort --tac --listen ${FZF_PORT}"
 declare -x filter=all
-declare -r -x PID=$$
 
 help() {
     cat << EOF
@@ -39,7 +38,7 @@ EOF
 }
 
 list_indexers() {
-    if [ -d /var/lib/jackett/Indexers ];then
+    if [ -r /var/lib/jackett/Indexers ];then
         for i in /var/lib/jackett/Indexers/*.json;do
             i=${i##*/} i=${i%.*}
             echo "$i"
