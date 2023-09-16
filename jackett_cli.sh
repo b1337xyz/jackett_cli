@@ -90,7 +90,7 @@ main() {
         Link|BlackholeLink)
             k=$1; shift
             for i in "$@";do
-                link=$(jq -Mcr --arg i "${i%%:*}" --arg k "$k" '.Results[$i][$sk]' "$FILE")
+                link=$(jq -Mcr --arg i "${i%%:*}" --arg k "$k" '.Results[$i][$k]' "$FILE")
                 addUri "$link"
             done
             ;;
