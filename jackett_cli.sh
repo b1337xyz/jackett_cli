@@ -60,7 +60,7 @@ addUri() {
         "params": [ ["%s"], {"dir": "%s", "bt-save-metadata": true}, 0 ]
     }' "$1" "$DL_DIR" | jq -Mc)
     curl -s "${RPC_URL}/jsonrpc" -d "$data" \
-        -H "Content-Type: application/json" -H "Accept: application/json" >/dev/null 2>&1
+        -H "Content-Type: application/json" -H "Accept: application/json" >&2
 }
 
 preview() {
@@ -84,13 +84,13 @@ Peers: \(.Peers)"' "$FILE" 2>/dev/null
 }
 
 main() {
-    exec 2>&1
+    # exec 2>&1
     curr=${FILE}.curr
     case "$1" in
         Link|BlackholeLink)
             k=$1; shift
-            for i in "$@";do
-                link=$(jq -Mcr --arg i "${i%%:*}" --arg k "$k" '.Results[$i][$k]' "$FILE")
+            for i in "$@";do 
+                link=$(jq -Mecr --argjson i "${i%%:*}" --arg k "$k" '.Results[$i][$k]' "$FILE")
                 addUri "$link"
             done
             ;;
@@ -121,7 +121,7 @@ main() {
             ;;
         *)
             query=${2:-$1}
-            [ -z "$query" ] && return
+            # [ -z "$query" ] && return
             fzf_cmd "change-prompt(Searching... )"
             curl -s "${API_URL}/${filter:-all}/results?apikey=${API_KEY}&Query=${query// /+}" -o "$FILE" >/dev/null 2>&1
             jq -Mcr '.Results | to_entries[] | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
@@ -154,9 +154,10 @@ main "${query:1}" | fzf --prompt 'Search: ' \
     --delimiter ':' --with-nth 2.. \
     --preview 'preview {1}' \
     --preview-window 'right,30%' \
+    --border=top --border-label-pos=top \
     --bind 'ctrl-l:last' \
     --bind 'ctrl-f:first' \
     --bind 'enter:reload(main {} {q})+clear-query' \
     --bind 'esc:reload(main menu)+clear-query' \
     --bind 'ctrl-d:execute(main Link {+})' \
-    --bind 'ctrl-b:execute(main BlackholeLink {+})'
+    --bind 'ctrl-h:execute(main BlackholeLink {+})'
