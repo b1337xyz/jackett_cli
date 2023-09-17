@@ -55,4 +55,4 @@ More about filters: https://github.com/Jackett/Jackett#filter-indexers
 ```
 
 ### TODO
-- [ ] Search modes and parameters
+- [x] Search modes and parameters
