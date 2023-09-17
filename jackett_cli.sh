@@ -235,13 +235,13 @@ main() {
             curl -s -G "$url" -o "$FILE" \
                 --data-urlencode "Query=$query" >&2
 
-            jq -Mcr '.Results | to_entries[] | "\(.key):\(.value.Title)"' "$FILE"
+            jq -Mcr '.Results | to_entries[] | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
             fzf_cmd 'change-prompt(Search: )'
             ;;
     esac
 }
 
-export -f main list_indexers fzf_cmd addUri preview
+export -f main fzf_cmd addUri preview
 
 while (( $# )) ;do
     case "$1" in
