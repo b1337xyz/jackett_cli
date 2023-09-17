@@ -1,0 +1,33 @@
+_jackett_cli() {
+    local opts cur prev prefix skip words split=false
+    COMPREPLY=()
+    _get_comp_words_by_ref cur prev
+    opts='-f --filter -t --tracker -l --list -h --help'
+    if [ "${cur%,*}" != "${cur}" ];then
+        prefix="${cur%,*},"
+        skip=${cur%,*} skip=${skip//,/\\|}
+    fi
+
+    case $prev in
+        -f|--filter|-t|--tracker)
+            if [ -n "$skip" ];then
+                words=$(jackett_cli.sh i | grep -xv "$skip")
+            else
+                words=$(jackett_cli.sh i)
+            fi
+            COMPREPLY=( $( compgen -P "$prefix" -W "$words" -- "${cur##*,}" ) )
+            return ;;
+        -c|--category)
+            if [ -n "$skip" ];then
+                words=$(jackett_cli.sh c | awk '{print $1}' | grep -xv "$skip")
+            else
+                words=$(jackett_cli.sh c | awk '{print $1}')
+            fi
+            COMPREPLY=( $(compgen -P "$prefix" -W "$words" -- "${cur##*,}") )
+            return ;;
+    esac
+
+    case $cur in
+        -*) COMPREPLY=( $( compgen -W "$opts"  -- "$cur" ) ) ;;
+    esac
+} && complete -o nospace -F _jackett_cli jackett_cli
