@@ -9,6 +9,13 @@ Search torrents using Jackett's indexers and download using aria2 rpc.
 - [jq](https://github.com/jqlang/jq)
 - [aria2](https://aria2.github.io/) (RPC running by default on `http://localhost:6800`)
 
+### Install
+```
+git clone git@github.com:b1337xyz/jackett_cli.git
+cd jackett_cli
+make install
+```
+
 ### [Settings](https://github.com/b1337xyz/jackett_cli/blob/main/jackett_cli.sh#L5)
 
 ```bash
