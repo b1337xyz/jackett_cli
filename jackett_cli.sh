@@ -9,7 +9,7 @@ declare -r -x RPC_URL=http://localhost:6800
 declare -r -x DL_DIR=~/Downloads/jackett
 declare -r -x FILE=/tmp/jackett_cli.$$.json
 declare -r FZF_PORT=$((RANDOM % (63000 - 20000) + 20000))
-declare -r FZF_DEFAULT_OPTS="-m --exact --cycle --no-sort --tac --listen ${FZF_PORT}"
+declare -r FZF_DEFAULT_OPTS="-m --reverse --exact --cycle --no-sort --tac --listen ${FZF_PORT}"
 declare -x filter=all
 declare -x tracker
 declare -x category
@@ -266,10 +266,10 @@ fi
 trap 'rm $FILE ${FILE}.curr 2>/dev/null' EXIT
 main "${query:1}" | fzf --prompt 'Search: ' \
     --delimiter ':' --with-nth 2.. \
-    --border-label "filter: $filter, tracker: ${tracker:-?}, category: ${category:-?}" \
     --preview 'preview {1}' \
     --preview-window 'right,30%' \
-    --border=top --border-label-pos=top \
+    --border=bottom --border-label-pos=bottom \
+    --border-label "( filter: $filter, tracker: ${tracker:-?}, category: ${category:-?} )" \
     --bind 'ctrl-l:last' \
     --bind 'ctrl-f:first' \
     --bind 'enter:reload(main {} {q})+clear-query' \
