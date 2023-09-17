@@ -186,7 +186,7 @@ Peers: \(.Peers)"' "$FILE" 2>/dev/null
 }
 
 main() {
-    fzf_cmd "change-border-label(filter: $filter, tracker: ${tracker:-Not set})"
+    local curr=${FILE}.curr # current fzf list
     case "$1" in
         Link|BlackholeLink)
             k=$1; shift
@@ -204,24 +204,26 @@ main() {
             echo 'submenu_Tracker:Tracker'
             echo 'submenu_TrackerType:Type'
             ;;
-        submenu_*)
+        submenu_*) # from menu
             k=${1/submenu_} k=${k%%:*}
-            jq -Mcr --arg k "$k" '.Results[][$k] | "\($k):\(.)"' "$FILE" | sort -u
+            jq -Mcr --arg k "$k" '.Results[][$k] | "\($k):\(.)"' "$FILE" | sort -u | tee "$curr"
             ;;
-        [A-Z]*:Sort*) 
+        [A-Z]*:Sort*) # from menu
+            [ -s "$curr" ] || return 0;
             k=${1%%:*}
             fzf_cmd "change-prompt((Sorting by ${k}) Search: )"
-            jq -Mcr --arg k "$k" \
+            # stdout only the curr listing not the whole FILE
+            grep -xFf "$curr" < <(jq -Mcr --arg k "$k" \
                 '.Results as $r | $r |
                 [to_entries[] | {k: .key, v: .value[$k]}] |
-                sort_by(.v)[] | "\(.k):\($r[.k].Title)"' "$FILE"
+                sort_by(.v)[] | "\(.k):\($r[.k].Title)"' "$FILE")
             ;;
-        [A-Z]*:*)
+        [A-Z]*:*) # from submenu
             k=${1%%:*} v=${1#*:}
             fzf_cmd "change-prompt(($v) Search: )"
             jq -Mcr --arg k "$k" --arg v "$v" \
                 '.Results | to_entries[] |
-                select(.value[$k] == $v) | "\(.key):\(.value.Title)"' "$FILE"
+                select(.value[$k] == $v) | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
             ;;
         *)
             query=${2:-$1}
@@ -261,9 +263,10 @@ if [ "$filter" != all ];then
     fi
 fi
 
-trap 'rm $FILE 2>/dev/null; exit 0' EXIT
+trap 'rm $FILE ${FILE}.curr 2>/dev/null' EXIT
 main "${query:1}" | fzf --prompt 'Search: ' \
     --delimiter ':' --with-nth 2.. \
+    --border-label "filter: $filter, tracker: ${tracker:-?}, category: ${category:-?}" \
     --preview 'preview {1}' \
     --preview-window 'right,30%' \
     --border=top --border-label-pos=top \
