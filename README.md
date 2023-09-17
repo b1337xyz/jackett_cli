@@ -53,6 +53,3 @@ Options:
 
 More about filters: https://github.com/Jackett/Jackett#filter-indexers
 ```
-
-### TODO
-- [x] Search modes and parameters
