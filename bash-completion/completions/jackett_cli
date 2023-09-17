@@ -7,9 +7,11 @@ _jackett_cli() {
         prefix="${cur%,*},"
         skip=${cur%,*} skip=${skip//,/\\|}
     fi
-
     case $prev in
-        -f|--filter|-t|--tracker)
+        -f|--filter)
+            COMPREPLY=( $( compgen -W "$(jackett_cli i)" -- "${cur}" ) )
+            return ;;
+        -t|--tracker)
             if [ -n "$skip" ];then
                 words=$(jackett_cli i | grep -xv "$skip")
             else
