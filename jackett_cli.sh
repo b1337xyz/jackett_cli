@@ -248,8 +248,8 @@ while (( $# )) ;do
         -c|--category)  shift; category=$1 ;;
         i|indexers)     list_indexers; exit 0 ;;
         c|categories)   list_cat; exit 0 ;;
-        -h|--help)     help ;;
-        *) query="${query}+$1" ;;
+        -*) help ;;
+        *)  query="${query}+$1" ;;
     esac
     shift
 done

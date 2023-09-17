@@ -7,21 +7,20 @@ _jackett_cli() {
         prefix="${cur%,*},"
         skip=${cur%,*} skip=${skip//,/\\|}
     fi
-
     case $prev in
         -f|--filter|-t|--tracker)
             if [ -n "$skip" ];then
-                words=$(jackett_cli.sh i | grep -xv "$skip")
+                words=$(jackett_cli i | grep -xv "$skip")
             else
-                words=$(jackett_cli.sh i)
+                words=$(jackett_cli i)
             fi
             COMPREPLY=( $( compgen -P "$prefix" -W "$words" -- "${cur##*,}" ) )
             return ;;
         -c|--category)
             if [ -n "$skip" ];then
-                words=$(jackett_cli.sh c | awk '{print $1}' | grep -xv "$skip")
+                words=$(jackett_cli c | awk '{print $1}' | grep -xv "$skip")
             else
-                words=$(jackett_cli.sh c | awk '{print $1}')
+                words=$(jackett_cli c | awk '{print $1}')
             fi
             COMPREPLY=( $(compgen -P "$prefix" -W "$words" -- "${cur##*,}") )
             return ;;
