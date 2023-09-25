@@ -6,8 +6,9 @@ declare -r -x PASSWORD
 declare -r -x API_KEY=YOUR_API_KEY_HERE
 declare -r -x API_URL=http://localhost:9117/api/v2.0/indexers
 declare -r -x RPC_URL=http://localhost:6800
-declare -r -x DL_DIR=~/Downloads/jackett
+declare -r -x DL_DIR=~/Downloads/.torrents
 declare -r -x FILE=/tmp/jackett_cli.$$.json
+declare -r -x HISTORY=${XDG_CACHE_HOME:-${HOME}/.cache}/jackett_cli_history
 declare -r FZF_PORT=$((RANDOM % (63000 - 20000) + 20000))
 declare -r FZF_DEFAULT_OPTS="-m --reverse --exact --cycle --no-sort --tac --listen ${FZF_PORT}"
 declare -x filter=all
@@ -191,7 +192,7 @@ main() {
         Link|BlackholeLink)
             k=$1; shift
             for i in "$@";do 
-                link=$(jq -Mecr --argjson i "${i%%:*}" --arg k "$k" '.Results[$i][$k]' "$FILE")
+                link=$(jq -Mcr --argjson i "${i%%:*}" --arg k "$k" '.Results[$i][$k]' "$FILE")
                 addUri "$link"
             done
             ;;
@@ -225,15 +226,21 @@ main() {
                 '.Results | to_entries[] |
                 select(.value[$k] == $v) | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
             ;;
+        [0-9]*:*) main Link "$1" & cat "curr" ;;
         *)
+            if [ -n "$2" ];then
+                echo "$2" >> "$HISTORY"
+            elif [ -z "$1" ];then
+                [ -s "$HISTORY" ] && awk '!seen[$0]++' "$HISTORY" | sed 's/^/:/'
+                return
+            fi
             query=${2:-$1}
-            [ -z "$query" ] && return
             fzf_cmd "change-prompt(Searching... )"
             url="${API_URL}/${filter:-all}/results?apikey=${API_KEY}"
             [ -n "$tracker" ]  && url="${url}&Tracker%5B%5D=$tracker"
             [ -n "$category" ] && url="${url}&Category%5B%5D=$category"
             curl -s -G "$url" -o "$FILE" \
-                --data-urlencode "Query=$query" >&2
+                --data-urlencode "Query=$query" >/dev/null 2>&1
 
             jq -Mcr '.Results | to_entries[] | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
             fzf_cmd 'change-prompt(Search: )'
