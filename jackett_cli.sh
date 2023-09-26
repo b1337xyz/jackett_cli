@@ -226,7 +226,6 @@ main() {
                 '.Results | to_entries[] |
                 select(.value[$k] == $v) | "\(.key):\(.value.Title)"' "$FILE" | tee "$curr"
             ;;
-        [0-9]*:*) main Link "$1" & cat "curr" ;;
         *)
             if [ -n "$2" ];then
                 echo "$2" >> "$HISTORY"
@@ -234,6 +233,7 @@ main() {
                 [ -s "$HISTORY" ] && awk '!seen[$0]++' "$HISTORY" | sed 's/^/:/'
                 return
             fi
+
             fzf_cmd "change-prompt(Searching... )"
             query=${2:-$1}
             [ -z "$2" ] && query=${query/:}
