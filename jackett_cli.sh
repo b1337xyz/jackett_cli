@@ -9,7 +9,7 @@ declare -r -x RPC_URL=http://localhost:6800
 declare -r -x DL_DIR=~/Downloads/.torrents
 declare -r -x FILE=/tmp/jackett_cli.$$.json
 declare -r -x HISTORY=${XDG_CACHE_HOME:-${HOME}/.cache}/jackett_cli_history
-declare -r FZF_PORT=$((RANDOM % (63000 - 20000) + 20000))
+declare -r -x FZF_PORT=$((RANDOM % (63000 - 20000) + 20000))
 declare -r FZF_DEFAULT_OPTS="-m --reverse --exact --cycle --no-sort --tac --listen ${FZF_PORT}"
 declare -x filter=all
 declare -x tracker
@@ -234,8 +234,9 @@ main() {
                 [ -s "$HISTORY" ] && awk '!seen[$0]++' "$HISTORY" | sed 's/^/:/'
                 return
             fi
-            query=${2:-$1}
             fzf_cmd "change-prompt(Searching... )"
+            query=${2:-$1}
+            [ -z "$2" ] && query=${query/:}
             url="${API_URL}/${filter:-all}/results?apikey=${API_KEY}"
             [ -n "$tracker" ]  && url="${url}&Tracker%5B%5D=$tracker"
             [ -n "$category" ] && url="${url}&Category%5B%5D=$category"
