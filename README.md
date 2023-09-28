@@ -38,25 +38,26 @@ ctrl-d : Download selected items
 ```
 Usage: jackett_cli {command} [option] <query>
 
-[i]ndexers      List indexers
-[c]ategories    List categories
+[i]ndexers          List indexers
+[c]ategories        List categories
 
 Options:
--h --help       Show this message and exit
--t --tracker    Tracker (comma separated)
--c --category   Jackett category id (comma separated)
--f --filter     Indexer used for your search (Default: all)
-                Supported filters
-                    type:<type>
-                    tag:<tag>
-                    lang:<tag>
-                    test:{passed|failed}
-                    status:{healthy|failing|unknown}
-                Supported operators:
-                    !<expr>
-                    <expr1>+<expr2>[+<expr3>...]
-                    <expr1>,<expr2>[,<expr3>...]
-                        
+-h --help           Show this message and exit
+-t --tracker        Tracker (comma separated)
+-c --category       Jackett category id (comma separated)
+-i --interactive    Select a filter and category interactively
+-f --filter         Indexer used for your search (Default: all)
+                    Supported filters
+                        type:<type>
+                        tag:<tag>
+                        lang:<tag>
+                        test:{passed|failed}
+                        status:{healthy|failing|unknown}
+                    Supported operators:
+                        !<expr>
+                        <expr1>+<expr2>[+<expr3>...]
+                        <expr1>,<expr2>[,<expr3>...]
+
 
 More about filters: https://github.com/Jackett/Jackett#filter-indexers
 ```

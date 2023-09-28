@@ -96,24 +96,25 @@ help() {
     cat << EOF
 Usage: ${0##*/} {command} [option] <query>
 
-[i]ndexers      List indexers
-[c]ategories    List categories
+[i]ndexers          List indexers
+[c]ategories        List categories
 
 Options:
--h --help       Show this message and exit
--t --tracker    Tracker (comma separated)
--c --category   Jackett category id (comma separated)
--f --filter     Indexer used for your search (Default: all)
-                Supported filters
-                    type:<type>
-                    tag:<tag>
-                    lang:<tag>
-                    test:{passed|failed}
-                    status:{healthy|failing|unknown}
-                Supported operators:
-                    !<expr>
-                    <expr1>+<expr2>[+<expr3>...]
-                    <expr1>,<expr2>[,<expr3>...]
+-h --help           Show this message and exit
+-t --tracker        Tracker (comma separated)
+-c --category       Jackett category id (comma separated)
+-i --interactive    Select a filter and category interactively 
+-f --filter         Indexer used for your search (Default: all)
+                    Supported filters
+                        type:<type>
+                        tag:<tag>
+                        lang:<tag>
+                        test:{passed|failed}
+                        status:{healthy|failing|unknown}
+                    Supported operators:
+                        !<expr>
+                        <expr1>+<expr2>[+<expr3>...]
+                        <expr1>,<expr2>[,<expr3>...]
                         
 
 More about filters: https://github.com/Jackett/Jackett#filter-indexers
@@ -253,9 +254,13 @@ export -f main fzf_cmd addUri preview
 
 while (( $# )) ;do
     case "$1" in
-        -f|--filter)    shift; filter=$1 ;;
+        -f|--filter) shift; filter=$1 ;;
         -t|--tracker)   shift; tracker=$1 ;;
         -c|--category)  shift; category=$1 ;;
+        -i|--interactive)
+            filter=$(list_indexers | fzf)
+            category=$(list_cat | fzf | awk '{print $1}')
+            ;;
         i|indexers)     list_indexers; exit 0 ;;
         c|categories)   list_cat; exit 0 ;;
         -*) help ;;
@@ -265,10 +270,13 @@ while (( $# )) ;do
 done
 
 if [ "$filter" != all ];then
-    if curl -s "${API_URL}/${filter}/results?apikey=${API_KEY}" | jq -er .error
-    then
-        exit 1
-    fi
+    curl -s "${API_URL}/${filter}/results?apikey=${API_KEY}" | jq -er .error && exit 1
+fi
+
+if [ -n "$category" ];then
+    printf '%s\n' "${CAT[@]}" | grep -qxF "$category" || {
+        printf 'Category %s not found\n' "$category"; exit 1;
+    }
 fi
 
 trap 'rm $FILE ${FILE}.curr 2>/dev/null' EXIT
