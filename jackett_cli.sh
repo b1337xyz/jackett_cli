@@ -254,12 +254,17 @@ export -f main fzf_cmd addUri preview
 
 while (( $# )) ;do
     case "$1" in
-        -f|--filter) shift; filter=$1 ;;
+        -f|--filter) shift; filter=$1
+            if [ "$filter" != all ]; then
+                curl -s "${API_URL}/${filter}/results?apikey=${API_KEY}" | jq -er .error && exit 1
+            fi
+            ;;
         -t|--tracker)   shift; tracker=$1 ;;
         -c|--category)  shift; category=$1 ;;
         -i|--interactive)
-            filter=$(list_indexers | fzf)
-            category=$(list_cat | fzf | awk '{print $1}')
+            filter=$({ echo all; list_indexers; } | fzf --prompt 'filter: ')
+            category=$(list_cat | fzf -m --prompt 'category: ' | awk '{print $1}' | tr \\n ',') || true
+            [ -n "$category" ] && category=${category::-1}
             ;;
         i|indexers)     list_indexers; exit 0 ;;
         c|categories)   list_cat; exit 0 ;;
@@ -269,23 +274,13 @@ while (( $# )) ;do
     shift
 done
 
-if [ "$filter" != all ];then
-    curl -s "${API_URL}/${filter}/results?apikey=${API_KEY}" | jq -er .error && exit 1
-fi
-
-if [ -n "$category" ];then
-    printf '%s\n' "${CAT[@]}" | grep -qxF "$category" || {
-        printf 'Category %s not found\n' "$category"; exit 1;
-    }
-fi
-
 trap 'rm $FILE ${FILE}.curr 2>/dev/null' EXIT
 main "${query:1}" | fzf --prompt 'Search: ' \
     --delimiter ':' --with-nth 2.. \
     --preview 'preview {1}' \
     --preview-window 'right,30%' \
     --border=bottom --border-label-pos=bottom \
-    --border-label "( filter: $filter, tracker: ${tracker:-?}, category: ${category:-?} )" \
+    --border-label "( fil: $filter, tra: ${tracker:-?}, cat: ${category:-?} )" \
     --bind 'ctrl-l:last' \
     --bind 'ctrl-f:first' \
     --bind 'enter:reload(main {} {q})+clear-query' \
