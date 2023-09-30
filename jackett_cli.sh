@@ -280,7 +280,7 @@ main "${query:1}" | fzf --prompt 'Search: ' \
     --preview 'preview {1}' \
     --preview-window 'right,30%' \
     --border=bottom --border-label-pos=bottom \
-    --border-label "( fil: ${filter}, tra: ${tracker:-?}, cat: ${category:-?} )" \
+    --border-label "( filter: ${filter}, tracker: ${tracker:-?}, cat: ${category:-?} )" \
     --bind 'ctrl-l:last' --bind 'ctrl-f:first' \
     --bind 'enter:reload(main {} {q})+clear-query' \
     --bind 'esc:reload(main menu)+clear-query' \
