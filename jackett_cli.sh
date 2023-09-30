@@ -280,10 +280,9 @@ main "${query:1}" | fzf --prompt 'Search: ' \
     --preview 'preview {1}' \
     --preview-window 'right,30%' \
     --border=bottom --border-label-pos=bottom \
-    --border-label "( fil: $filter, tra: ${tracker:-?}, cat: ${category:-?} )" \
-    --bind 'ctrl-l:last' \
-    --bind 'ctrl-f:first' \
+    --border-label "( fil: ${filter}, tra: ${tracker:-?}, cat: ${category:-?} )" \
+    --bind 'ctrl-l:last' --bind 'ctrl-f:first' \
     --bind 'enter:reload(main {} {q})+clear-query' \
     --bind 'esc:reload(main menu)+clear-query' \
-    --bind 'ctrl-d:execute(main Link {+})' \
-    --bind 'ctrl-h:execute(main BlackholeLink {+})'
+    --bind 'ctrl-d:execute(main Link {+})+clear-selection' \
+    --bind 'ctrl-h:execute(main BlackholeLink {+})+clear-selection'
