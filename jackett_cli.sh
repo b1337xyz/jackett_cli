@@ -2,7 +2,7 @@
 # shellcheck disable=SC2034
 set -eo pipefail
 
-declare -r -x PASSWORD
+declare -r -x PASSWORD=
 declare -r -x API_KEY=YOUR_API_KEY_HERE
 declare -r -x API_URL=http://localhost:9117/api/v2.0/indexers
 declare -r -x RPC_URL=http://localhost:6800
@@ -274,7 +274,8 @@ while (( $# )) ;do
     shift
 done
 
-trap 'rm $FILE ${FILE}.curr 2>/dev/null' EXIT
+# shellcheck disable=SC2154
+trap 'o=$?; rm $FILE ${FILE}.curr 2>/dev/null || true; exit $o' EXIT
 main "${query:1}" | fzf --prompt 'Search: ' \
     --delimiter ':' --with-nth 2.. \
     --preview 'preview {1}' \
