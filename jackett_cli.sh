@@ -190,6 +190,15 @@ Peers: \(.Peers)"' "$FILE" 2>/dev/null
 main() {
     local curr=${FILE}.curr # current fzf list
     case "$1" in
+        Open)
+            shift
+            link=$(jq -Mcr --argjson i "${1%%:*}" '.Results[$i].Details' "$FILE")
+            if [ -n "$BROWSER" ];then
+                "$BROWSER" "$link" >/dev/null 2>&1 & disown
+            else
+                xdg-open "$link"
+            fi
+        ;;
         Link|BlackholeLink)
             k=$1; shift
             for i in "$@";do 
@@ -286,4 +295,5 @@ main "${query:1}" | fzf --prompt 'Search: ' \
     --bind 'enter:reload(main {} {q})+clear-query' \
     --bind 'esc:reload(main menu)+clear-query' \
     --bind 'ctrl-d:execute(main Link {+})+clear-selection' \
-    --bind 'ctrl-h:execute(main BlackholeLink {+})+clear-selection'
+    --bind 'ctrl-h:execute(main BlackholeLink {+})+clear-selection' \
+    --bind 'ctrl-o:execute(main Open {})+clear-selection'
