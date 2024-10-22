@@ -163,6 +163,7 @@ addUri() {
         "method": "aria2.addUri",
         "params": [ ["%s"], {"dir": "%s", "bt-save-metadata": true}, 0 ]
     }' "$1" "$DL_DIR" | jq -Mc)
+
     curl -s "${RPC_URL}/jsonrpc" -d "$data" \
         -H "Content-Type: application/json" -H "Accept: application/json" >/dev/null 2>&1
 }
